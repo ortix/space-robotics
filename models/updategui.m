@@ -1,5 +1,19 @@
 function varargout = updategui(obj,event,app)
-%create a run time object that can return the value of the gain block's
-%output and then put the value in a string.  
-rto = get_param('realtime_test/Sine Wave','RuntimeObject');
-app.q1EditField.Value = rto.OutputPort(1).Data
+
+%% Update joint angles
+rto = get_param([app.model '/Visualize/qd-log'],'RuntimeObject');
+app.q1EditField.Value = rto.OutputPort(1).Data(1);
+app.q2EditField.Value = rto.OutputPort(1).Data(2);
+app.q3EditField.Value = rto.OutputPort(1).Data(3);
+app.q4EditField.Value = rto.OutputPort(1).Data(4);
+app.q5EditField.Value = rto.OutputPort(1).Data(5);
+app.q6EditField.Value = rto.OutputPort(1).Data(6);
+
+%% Update joint velocities
+% rto = get_param([app.model '/Visualize/qd-log'],'RuntimeObject');
+% app.q1EditField.Value = rto.OutputPort(1).Data(1);
+% app.q2EditField.Value = rto.OutputPort(1).Data(2);
+% app.q3EditField.Value = rto.OutputPort(1).Data(3);
+% app.q4EditField.Value = rto.OutputPort(1).Data(4);
+% app.q5EditField.Value = rto.OutputPort(1).Data(5);
+% app.q6EditField.Value = rto.OutputPort(1).Data(6);
