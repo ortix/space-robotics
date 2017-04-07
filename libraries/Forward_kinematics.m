@@ -1,6 +1,6 @@
 %% Forward Kinematics
-syms th1 th2 th3 th4 th5 th6
-format rat
+syms th1 th2 th3 th4 th5 th6 real
+
 %DH convention
 a = [25 560 35 0 0 0];
 alp = [90 0 90 -90 90 0];
@@ -23,7 +23,7 @@ T06 = A1*A2*A3*A4*A5*A6;
 fkpos = [T06(1,4);T06(2,4);T06(3,4)];
 
 %% Inverse Kinematics
-syms x06 y06 z06
+syms x06 y06 z06 real
 dist06 = [x06;y06;z06];
 
 %joint 1
@@ -40,17 +40,17 @@ dist02 = subs(T02(1:3,4),th2,0);
 dist24 = dist04-dist02;
 l1 = sqrt(35^2+515^2);
 l2 = 560;
-phi = acos((l1^2+l2^2-norm(dist24)^2)/(2*l1*l2));
+% phi = acos((l1^2+l2^2-norm(dist24)^2)/(2*l1*l2));
 phi2 = atan2(d(4),a(3));
 
-%phi3 = asin((l1^2-l2^2+norm(dist24)^2)/(2*norm(dist24)*l1))+asin((norm(dist24)-(l1^2-l2^2+norm(dist24)^2)/(2*norm(dist24)))/l2)
+phi = asin((l1^2-l2^2+norm(dist24)^2)/(2*norm(dist24)*l1))+asin((norm(dist24)-(l1^2-l2^2+norm(dist24)^2)/(2*norm(dist24)))/l2);
 
 IK_th3(1) = pi-phi-phi2;
 IK_th3(2) = pi+phi-phi2;
 
 %joint 2
 R02 = T02(1:3,1:3);
-dist24_2 = R02*dist24;
+dist24_2 = R02\dist24;
 beta1 = atan2(dist24_2(1),dist24_2(2));
 beta2 = acos((norm(dist24_2)^2+l2^2-l1^2)/(2*norm(dist24_2)*l2));
 
@@ -78,7 +78,7 @@ IK_th6 = atan2(R46(3,2),-R46(3,1));
 Angles = [IK_th1;IK_th2;IK_th3;IK_th4 IK_th4;IK_th5 IK_th5;IK_th6 IK_th6];
 Theta = [th1;th2;th3;th4;th5;th6];
 
-Thetas1 = solve(Angles(:,1),th1)
+
 
 
 
