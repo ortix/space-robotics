@@ -4,8 +4,8 @@ format shortG
 a = [25 560 35 0 0 0];
 alp = [.5*pi 0 .5*pi -.5*pi .5*pi 0];
 d = [400 0 0 515 0 87];
-% th = [th1 th2+.5*pi th3 th4 th5 th6];
-th = [0*pi .5*pi-0*pi 0*pi 0*pi 0*pi 0*pi];
+th = [th1 .5*pi+th2 th3 th4 th5 th6];
+% th = [0*pi .5*pi-0*pi 0*pi 0*pi 0*pi 0*pi];
 
 %Individual transformation matrices
 A1 = Aind(1,a,alp,d,th);

@@ -9,7 +9,7 @@
 % 	Output 
 % current joint angles (q)
 
-% willekeurige testwaarde
+% willekeurige testwaarden
  th1 = .33*pi; th2 = .22*pi; th3= .66*pi; th4 = .99*pi; th5= .88*pi; th6= .55*pi;
 
 % %DH parameters
