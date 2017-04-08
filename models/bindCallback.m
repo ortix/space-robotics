@@ -7,10 +7,9 @@ function h = bindCallback(model)
 % I'm not sure if this should be enabled at all. Will test later
 set(0,'ShowHiddenHandles','on');
 
-% Determine which block should be logged. Doesn't really matter
-% which block it is as long as it outputs a value and updates every
-% tick.
-blk = [model '/Visualize/q-log'];
+% Determine which block we should listen to. It's quite trivial which block
+% it is in our case since we are just interested in the event itself.
+blk = [model '/point_f'];
 
 % Define event listener. This event is fired AFTER the block has
 % output its values.
