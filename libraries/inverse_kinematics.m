@@ -36,7 +36,7 @@ Tind1 = TransMatInd(a(1), alpha(1), theta(2), d(2));
 Tind2 = TransMatInd(a(2), alpha(2), theta(3), d(3));
 Tind3 = TransMatInd(a(3), alpha(3), theta(4), d(4));
 Tind4 = TransMatInd(a(4), alpha(4), theta(5), d(5));
-Tind5= TransMatInd(a(5), alpha(5), theta(6), d(6));
+Tind5 = TransMatInd(a(5), alpha(5), theta(6), d(6));
 Tind6 = TransMatInd(a(6), alpha(6), theta(7), d(7));
 
 % Big Transformation

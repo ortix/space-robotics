@@ -65,4 +65,4 @@ posSmf2 = fnval(traj,y);
 % Linear
 plot3(posSmf2(1,:),posSmf2(2,:),posSmf2(3,:),'bo','LineWidth',1); 
 
-%linTraj(xyz,50,4,[0.05 0.95]);
+linTrajSpline(xyz,50,4,0.05);
