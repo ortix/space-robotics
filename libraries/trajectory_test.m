@@ -10,7 +10,7 @@ t = linspace(0,8*pi,npts);
 z = linspace(-1,1,npts);
 omz = sqrt(1-z.^2);
 xyz = [cos(t).*omz; sin(t).*omz; z];
-%xyz = [0 0 0 ; 1 1 1 ; -2 -2 2].';
+%xyz = [0 0 0 ; 1 1 1 ].';
 
 % Use curve fitting to fit a spline through all points. This is our
 % path generator.
@@ -18,7 +18,7 @@ traj = cscvn(xyz(:,1:end ));
 
 % Plot points and text
 plot3(xyz(1,:),xyz(2,:),xyz(3,:),'ro','LineWidth',2);
-text(xyz(1,:),xyz(2,:),xyz(3,:),[repmat('  ',npts,1), num2str((1:npts)')])
+%text(xyz(1,:),xyz(2,:),xyz(3,:),[repmat('  ',npts,1), num2str((1:npts)')])
 
 
 % Turn off axes.  Bring forward and fix perspective. Rather 'gebeund'
