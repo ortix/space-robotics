@@ -1,100 +1,179 @@
-% function q = inverse_kinematics(p,orientation)
+function theta = inverse_kinematics(pos,DH,config,orientation)
+%% Build DH Transform struct
+clear DH
+% Move this to function
+DH(1) = struct('theta',0,'d',0.4,'a',0.025,'alpha',pi/2);
+DH(2) = struct('theta',0,'d',0,'a',0.560,'alpha',pi);
+DH(3) = struct('theta',0,'d',0,'a',0.035,'alpha',-pi/2);
+DH(4) = struct('theta',0,'d',0.515,'a',0,'alpha',pi/2);
+DH(5) = struct('theta',0,'d',0,'a',0,'alpha',-pi/2);
+DH(6) = struct('theta',0,'d',0,'a',0,'alpha',0);
+DH(6).tool = GetPlanarT([0 0 0.087]);
 
-%% Voorlopig, klopt niet
+%% Configuration
+configuration = 'ru';
 
-% Inputs
-% p: describingWorld XYZ, 
-% orientation: normal vector pointing to toolhead  + angle vector describing tool angle (EEF angle)
-% % % 	Determines: All uknown singularity positions. Picks a random orientation.
-% 	Output 
-% current joint angles (q)
+cfg = [1 1 1];  % left, up, noflip
 
-% willekeurige testwaarden
- th1 = .33*pi; th2 = .22*pi; th3= .66*pi; th4 = .99*pi; th5= .88*pi; th6= .55*pi;
+for c=configuration
+    switch c
+        case 'l'
+            cfg(1) = 1;
+        case 'r'
+            cfg(1) = 2;
+        case 'u'
+            cfg(2) = 1;
+        case 'd'
+            cfg(2) = 2;
+        case 'n'
+            cfg(3) = 1;
+        case 'f'
+            cfg(3) = 2;
+    end
+end
+%% Calculate Transformation Matrix
 
-% %DH parameters
-% a = [25 0 560 35 0 0 0];
-% alpha = [0 90 0 90 -90 90 0];
-% d = [0 -400 0 0 -515 0 87];
-% theta = [0 th1 -90+th2 th3 180+th4 180+th5 th6];
+% XYZ coordinates of end effector (target)
+T = GetPlanarT(pos);
 
-%DH parameters random testwaardes
-a = [90 0 560 35 30 30 30];
-alpha = [90 90 90 90 -90 90 90];
-d = [90 -400 90 90 -515 90 87];
-theta = [0 th1 -90+th2 th3 180+th4 180+th5 th6];
-
-% Calculate transformation matrix T,1-i,i
-%Requires inputs 
-% alpha,i-1
-% a,i-1
-% theta,i
-% d,i
-
-% slordig, loopje komt nog
-Tind1 = TransMatInd(a(1), alpha(1), theta(2), d(2));
-Tind2 = TransMatInd(a(2), alpha(2), theta(3), d(3));
-Tind3 = TransMatInd(a(3), alpha(3), theta(4), d(4));
-Tind4 = TransMatInd(a(4), alpha(4), theta(5), d(5));
-Tind5 = TransMatInd(a(5), alpha(5), theta(6), d(6));
-Tind6 = TransMatInd(a(6), alpha(6), theta(7), d(7));
-
-% Big Transformation
-T02 = Tind1 .* Tind2;
-T04 = Tind1 .* Tind2 .* Tind3 .* Tind4;
-T06 = Tind1 .* Tind2 .* Tind3 .* Tind4 .* Tind5 .* Tind6;
+% Rotate tool head to match requested orientation
+Trot = eye(4);
+Trot(1:3,1:3) = roty(pi/2);
+T = T*inv(DH(6).tool)*Trot;
 
 
-%% Joint 1
-
-theta1 =  [atan2(T06(2,4)-d(7)*T06(2,3),T06(1,4)-d(7)*T06(1,3));
-    atan2(T06(2,4)-d(7)*T06(2,3),T06(1,4)-d(7)*T06(1,3)) + pi];
-
-%% Joint 3
-P24K0 = [T04(1,4);T04(2,4);T04(3,4)] - [T02(1,4);T02(2,4);T02(3,4)];
-e = atan2(-d(5),a(4));
-
-nP24K0 = P24K0/norm(P24K0,2);
-
-l = sqrt((515^2+35^2));
-phi = asin( (l^2 - a(3)^2 + nP24K0.^2) / (2*nP24K0*l)) + ...
-    (asin(nP24K0 - ((l^2-a(3)^2+nP24K0)/(2*nP24K0)))/a(3));
-
-theta3 = [pi - phi - e;
-        pi + phi - e];
-    
-%% Joint 2
-
-P24K2 = T02(1:3,1:3)*P24K0;
-beta1 = atan2(P24K2(1),P24K2(2));
-
-nP24K2 = P24K2/norm(P24K2,2);
-
-beta2 = asin((a(3)^2 - nP24K2.^2 + l^2)/(2*l*a(3)))+ ...
-    asin(  (l - ((a(3)^3 - nP24K2.^2+l^2 )/(2*l)))   / nP24K2 );
-
-theta2 = [pi/2 - (abs(beta1)+beta2);
-          pi/2 + (abs(beta1)-beta2)];
- 
-%% Joint 5
-
-N04K0 = [T04(1,3);T04(2,3);T04(3,3)]; 
-N06K0 = [T06(1,3);T06(2,3);T06(3,3)]; 
-
-theta5 = pi - acos(dot(N04K0,N06K0));
-
-%% Joint 4 and 6
-R46 = [-cos(theta(5))*cos(theta(6))*cos(theta(7))-sin(theta(5))*sin(theta(7)) cos(theta(5))*cos(theta(6))*sin(theta(7))-sin(theta(5))*cos(theta(7)) -cos(theta(5))*sin(theta(6));
--sin(theta(5))*cos(theta(6))*cos(theta(7))+cos(theta(5))*sin(theta(6)) sin(theta(5))*cos(theta(6))*sin(theta(7))+cos(theta(5))*cos(theta(7)) -sin(theta(5))*sin(theta(6));
-sin(theta(6))*cos(theta(7)) -sin(theta(6))*sin(theta(7)) -cos(theta(6))];
+%% Extract Parameters
+% get the a1, a2 and a3-- link lenghts for link no 1,2,3
+a1 = DH(1).a;
+a2 = DH(2).a;
+a3 = DH(3).a;
 
 
-theta4 = atan2(-R46(2,3),-R46(1,3));
-theta6 = atan2(-R46(3,2),-R46(3,1));
+% get d1,d2,d3,d4---- Link offsets for link no 1,2,3,4
+d1 = DH(1).d;
+d2 = DH(2).d;
+d3 = DH(3).d;
+d4 = DH(4).d;
+
+% Get the parameters from transformation matrix
+
+Ox = T(1,2);
+Oy = T(2,2);
+Oz = T(3,2);
+
+Ax = T(1,3);
+Ay = T(2,3);
+Az = T(3,3);
+
+Px = T(1,4);
+Py = T(2,4);
+Pz = T(3,4);
 
 
+%% Calculations first 3 joints
 
+% Set the parameters n1, n2 and n3 to get required configuration from
+% solution
+n1 = -1;   % 'l'
+n2 = -1;   % 'u'
+n4 = -1;   % 'n'
 
+if ~isempty(strfind(configuration, 'l'))
+    n1 = -1;
+end
+if ~isempty(strfind(configuration, 'r'))
+    n1 = 1;
+end
+if ~isempty(strfind(configuration, 'u'))
+    if n1 == 1
+        n2 = 1;
+    else
+        n2 = -1;
+    end
+end
+if ~isempty(strfind(configuration, 'd'))
+    if n1 == 1
+        n2 = -1;
+    else
+        n2 = 1;
+    end
+end
+if ~isempty(strfind(configuration, 'n'))
+    n4 = 1;
+end
+if ~isempty(strfind(configuration, 'f'))
+    n4 = -1;
+end
 
+% Calculation for theta(1)
+r=sqrt(Px^2+Py^2);
 
+if (n1 == 1)
+    theta(1)= atan2(Py,Px) + asin((d2-d3)/r);
+else
+    theta(1)= atan2(Py,Px)+ pi - asin((d2-d3)/r);
+end
+
+% Calculation for theta(2)
+X= Px*cos(theta(1)) + Py*sin(theta(1)) - a1;
+r=sqrt(X^2 + (Pz-d1)^2);
+Psi = acos((a2^2-d4^2-a3^2+X^2+(Pz-d1)^2)/(2.0*a2*r));
+
+if ~isreal(Psi)
+    warning('point not reachable');
+    theta = [NaN NaN NaN NaN NaN NaN];
+    return
+end
+
+theta(2) = atan2((Pz-d1),X) + n2*Psi;
+
+% Calculation for theta(3)
+Nu = cos(theta(2))*X + sin(theta(2))*(Pz-d1) - a2;
+Du = sin(theta(2))*X - cos(theta(2))*(Pz-d1);
+theta(3) = atan2(a3,d4) - atan2(Nu, Du);
+
+% Calculation for theta(4)
+Y = cos(theta(1))*Ax + sin(theta(1))*Ay;
+M2 = sin(theta(1))*Ax - cos(theta(1))*Ay ;
+M1 =  ( cos(theta(2)-theta(3)) )*Y + ( sin(theta(2)-theta(3)) )*Az;
+theta(4) = atan2(n4*M2,n4*M1);
+
+% Calculation for theta(5)
+Nu =  -cos(theta(4))*M1 - M2*sin(theta(4));
+M3 =  -Az*( cos(theta(2)-theta(3)) ) + Y*( sin(theta(2)-theta(3)) );
+theta(5) = atan2(Nu,M3);
+
+% Calculation for theta(6)
+Z = cos(theta(1))*Ox + sin(theta(1))*Oy;
+L2 = sin(theta(1))*Ox - cos(theta(1))*Oy;
+L1 = Z*( cos(theta(2)-theta(3) )) + Oz*( sin(theta(2)-theta(3)));
+L3 = Z*( sin(theta(2)-theta(3) )) - Oz*( cos(theta(2)-theta(3)));
+A1 = L1*cos(theta(4)) + L2*sin(theta(4));
+A3 = L1*sin(theta(4)) - L2*cos(theta(4));
+Nu =  -A1*cos(theta(5)) - L3*sin(theta(5));
+Du =  -A3;
+theta(6) = atan2(Nu,Du);
+
+%% Correct last 3 joints angles (wrist)
+
+% Get transform matrix from base to joint 3
+T13 = GetTransformToFrame(1:3, theta(1:3),DH);
+
+% Get rotation matrix by transforming into joint 4
+Td4 = GetPlanarT([0 0 DH(4).d]);
+R = inv(Td4) * inv(T13) * T;
+
+% the spherical wrist implements Euler angles
+% if cfg(3) == 1
+%     theta(4:6) = tr2eul(R,'flip');
+% else
+%     theta(4:6) = tr2eul(R);
+% end
+
+% Flip the wrist
+% if DH(4).alpha < 0
+%     theta(5) = -theta(5);
+% end
+
+q = theta
 
