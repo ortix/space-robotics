@@ -1,4 +1,4 @@
-function [ptsEased, ptsLin] = trajectory_generator(currentPos,targets,sr,vMax,ease)
+function [ptsEased, ptsLin] = positionTrajectory(currentPos,targets,sr,vMax,ease)
 % Takes points in a 3xn vector containing all points [x y z]' the
 % robot's EEF should pass through and generates linearly
 % interpolated paths through them, based on steps/s (sr) and max
@@ -97,16 +97,17 @@ end
 % Total travel time, plot and output
 totTravelTime = sum(travelTime);
 
-% plotPaths(pointsIn,ptsEased,ptsLin);
+plotPaths(points,ptsEased,ptsLin);
 
 end
 
 % Plot function. Can be turned off
-% function plotPaths(pointsIn,ptsEased,ptsLin)
-% hold on
-% plot3(pointsIn(1,:),pointsIn(2,:),pointsIn(3,:),'-o','LineWidth',1);
-% plot3(ptsEased(1,:),ptsEased(2,:),ptsEased(3,:),'go','LineWidth',2);
-% plot3(ptsLin(1,:),ptsLin(2,:),ptsLin(3,:),'bo','LineWidth',1);
+function plotPaths(pointsIn,ptsEased,ptsLin)
+hold on;grid on; box on; axis equal
+shg
+plot3(pointsIn(1,:),pointsIn(2,:),pointsIn(3,:),'-o','LineWidth',1);
+plot3(ptsEased(1,:),ptsEased(2,:),ptsEased(3,:),'go','LineWidth',2);
+plot3(ptsLin(1,:),ptsLin(2,:),ptsLin(3,:),'bo','LineWidth',1);
 % cameratoolbar
-% shg
-% end
+
+end
