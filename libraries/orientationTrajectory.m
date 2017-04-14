@@ -28,7 +28,7 @@ for i = 1:nPoints
     % over the spline. This eliminates descending vectors and works
     % for all directions.
     crvEnd = curve.breaks(end);
-    xq = linspace(0,crvEnd,segments);
+    xq = linspace(0,crvEnd,segments(i));
     y = smf2(xq ,[ease*crvEnd (1-ease)*crvEnd])*crvEnd;
     
     % Evaluate the spline from an S distribution of points.

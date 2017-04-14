@@ -1,4 +1,4 @@
-function [ptsEased, ptsLin] = positionTrajectory(currentPos,targets,sr,vMax,ease)
+function [ptsEased, segments,ptsLin] = positionTrajectory(currentPos,targets,sr,vMax,ease)
 % Takes points in a 3xn vector containing all points [x y z]' the
 % robot's EEF should pass through and generates linearly
 % interpolated paths through them, based on steps/s (sr) and max
@@ -26,7 +26,7 @@ points = [currentPos targets];
 % steps will be generated.
 ptsLin = [];
 ptsEased = [];
-travelTime = zeros(1,nPoints);
+segments = zeros(1,nPoints);
 
 % Find euclidian distances between points.
 xyzDist = diff(points,1,2);
@@ -85,7 +85,7 @@ for i = 1:nPoints
     end
     
     % Calculate travel time based on #segments and sr.
-    travelTime = [travelTime segs/sr];
+    segments = [segments segs];
     
     % Output eased and linear points.
     ptsLin = horzcat(ptsLin, [steps(1,:) ;steps(2,:) ;steps(3,:)] );
@@ -93,9 +93,6 @@ for i = 1:nPoints
     ptsEased = [ptsEased posSmf2];
         
 end
-
-% Total travel time, plot and output
-totTravelTime = sum(travelTime);
 
 plotPaths(points,ptsEased,ptsLin);
 
