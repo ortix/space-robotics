@@ -12,7 +12,7 @@ KUKA10.tool=transl(0,0,0.087);
 KUKA10.ikineType = 'kr5';
 
 
-T = transl(0.7, 0, 0.3);
+T = transl(0.5, 0, 0.5);
 q = KUKA10.ikine6s(T,'ruf');
 q0 = [0 0 0 0 0 0];
 KUKA10.plot(q)

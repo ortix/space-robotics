@@ -1,21 +1,17 @@
-function theta = inverse_kinematics(pos,DH,config,orientation)
+function theta = inverse_kinematics(pos,orientation,DH,config)
 %% Build DH Transform struct
-clear DH
-% Move this to function
-DH(1) = struct('theta',0,'d',0.4,'a',0.025,'alpha',pi/2);
-DH(2) = struct('theta',0,'d',0,'a',0.560,'alpha',pi);
-DH(3) = struct('theta',0,'d',0,'a',0.035,'alpha',-pi/2);
-DH(4) = struct('theta',0,'d',0.515,'a',0,'alpha',pi/2);
-DH(5) = struct('theta',0,'d',0,'a',0,'alpha',-pi/2);
-DH(6) = struct('theta',0,'d',0,'a',0,'alpha',0);
-DH(6).tool = GetPlanarT([0 0 0.087]);
+if(isempty(DH))
+   DH = GetDH(); 
+end
 
 %% Configuration
-configuration = 'ru';
+if(isempty(config))
+    config = 'ru';
+end
 
 cfg = [1 1 1];  % left, up, noflip
 
-for c=configuration
+for c=config
     switch c
         case 'l'
             cfg(1) = 1;
@@ -36,10 +32,14 @@ end
 % XYZ coordinates of end effector (target)
 T = GetPlanarT(pos);
 
-% Rotate tool head to match requested orientation
+% Rotate tool head so it points Z in global X
+ori = orientation;
 Trot = eye(4);
-Trot(1:3,1:3) = roty(pi/2);
-T = T*inv(DH(6).tool)*Trot;
+Trot(1:3,1:3) = rotx(ori(1)*pi)*roty(ori(2)*pi)*rotz(ori(3)*pi);
+
+
+% Rotate
+T = T*Trot*inv(DH(6).tool);
 
 
 %% Extract Parameters
@@ -78,30 +78,30 @@ n1 = -1;   % 'l'
 n2 = -1;   % 'u'
 n4 = -1;   % 'n'
 
-if ~isempty(strfind(configuration, 'l'))
+if ~isempty(strfind(config, 'l'))
     n1 = -1;
 end
-if ~isempty(strfind(configuration, 'r'))
+if ~isempty(strfind(config, 'r'))
     n1 = 1;
 end
-if ~isempty(strfind(configuration, 'u'))
+if ~isempty(strfind(config, 'u'))
     if n1 == 1
         n2 = 1;
     else
         n2 = -1;
     end
 end
-if ~isempty(strfind(configuration, 'd'))
+if ~isempty(strfind(config, 'd'))
     if n1 == 1
         n2 = -1;
     else
         n2 = 1;
     end
 end
-if ~isempty(strfind(configuration, 'n'))
+if ~isempty(strfind(config, 'n'))
     n4 = 1;
 end
-if ~isempty(strfind(configuration, 'f'))
+if ~isempty(strfind(config, 'f'))
     n4 = -1;
 end
 
@@ -175,5 +175,6 @@ R = inv(Td4) * inv(T13) * T;
 %     theta(5) = -theta(5);
 % end
 
-q = theta
+q = theta;
+
 

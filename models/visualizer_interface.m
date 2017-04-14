@@ -9,14 +9,16 @@ set_param('visualizer', 'SimulationCommand', 'start')
 
 % Allocate memory
 q = zeros(6,1);
+assignin('base','q',q)
+set_param([model '/q'],'value', 'q')
 
 while(1)
     packet = udpr();
     
     if(~isempty(packet))
-       q = packet(1:6);
-       assignin('base','q',q)
-       set_param([model '/q'],'value', 'q')
+        q = packet(1:6)
+        assignin('base','q',q)
+        set_param([model '/q'],'value', 'q')
     end
     
     pause(1/100);
