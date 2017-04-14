@@ -1,4 +1,4 @@
-function [ptsEased, segments,ptsLin] = positionTrajectory(currentPos,targets,sr,vMax,ease)
+function [ptsEased, segments, ptsLin] = positionTrajectory(currentPos,targets,sr,vMax,ease)
 % Takes points in a 3xn vector containing all points [x y z]' the
 % robot's EEF should pass through and generates linearly
 % interpolated paths through them, based on steps/s (sr) and max
@@ -19,21 +19,19 @@ end
 Rmin = 0.5;
 
 
-nPoints = size(targets,2);
-points = [currentPos targets];
+nPoints = size(targets,1);
+points = [currentPos; targets].';
 
 % Declare memory. I do this dynamically since we dont know how many
 % steps will be generated.
 ptsLin = [];
 ptsEased = [];
-segments = zeros(1,nPoints);
-
-% Find euclidian distances between points.
-xyzDist = diff(points,1,2);
-travDist = sqrt(  sum(  xyzDist(:,:).^2));
+segments = [];
 
 % Interpolation for each set of two points.
 for i = 1:nPoints
+    
+    travDist = norm(points(:,i+1) - points(:,i));
     
     % Create spline through current and next point
     curve = cscvn(points(:,i:i+1));
@@ -41,7 +39,7 @@ for i = 1:nPoints
     
     % Determine #segments based on path length, sr and max velocity.
     % Try to correct for S curve easing that increases max velocity later.
-    segs = round(sr*travDist(i)/vMax/(1-2*ease)); 
+    segs = round(sr*travDist/vMax/(1-2*ease)); 
     
     % Linearly interpolate between current and next point.
     steps = zeros(3,segs);
@@ -84,7 +82,7 @@ for i = 1:nPoints
         
     end
     
-    % Calculate travel time based on #segments and sr.
+    % Keep track of how long each move is in steps.
     segments = [segments segs];
     
     % Output eased and linear points.
@@ -96,11 +94,13 @@ end
 
 plotPaths(points,ptsEased,ptsLin);
 
+ptsEased = ptsEased.';
+
 end
 
 % Plot function. Can be turned off
 function plotPaths(pointsIn,ptsEased,ptsLin)
-hold on;grid on; box on; axis equal
+close all; hold on;grid on; box on; axis equal;
 shg
 plot3(pointsIn(1,:),pointsIn(2,:),pointsIn(3,:),'-o','LineWidth',1);
 plot3(ptsEased(1,:),ptsEased(2,:),ptsEased(3,:),'go','LineWidth',2);
