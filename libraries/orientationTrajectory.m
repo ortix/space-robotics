@@ -35,20 +35,15 @@ curve = cscvn(points(:,1:end));
     for i = 1:crvEnd*3000-1
         arcLength = arcLength + norm(xyzDist(:,i));
     end
-    
-    
-    % Determine #segments based on path length, sr and max velocity.
-    % Try to correct for S curve easing that increases max velocity later.
-    segs = round(sr*arcLength/vMax/(1-2*ease));
-    
-    xq = linspace(0,crvEnd,segs);
+        
+    xq = linspace(0,crvEnd,segments);
     y = smf2(xq ,[ease*crvEnd (1-ease)*crvEnd])*crvEnd;
     
     % Evaluate the spline from an S distribution of points.
     posSmf2 = fnval(curve,y);
     
     EEFOrientationPtsEased = posSmf2.';
-    
+    return
 end
 
 
