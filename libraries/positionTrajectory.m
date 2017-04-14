@@ -1,4 +1,4 @@
-function [ptsEased, segments, ptsLin] = positionTrajectory(currentPos,targets,sr,vMax,ease)
+function [ptsEased, segments, ptsLin] = positionTrajectory(currentPos,targets,sr,vMax,ease,discrete)
 % Takes points in a 3xn vector containing all points [x y z]' the
 % robot's EEF should pass through and generates linearly
 % interpolated paths through them, based on steps/s (sr) and max
@@ -28,6 +28,47 @@ ptsLin = [];
 ptsEased = [];
 segments = [];
 
+
+% Continuous spline
+if ~discrete
+    
+    curve = cscvn(points(:,1:end));
+    
+    
+    % Numerical arc length calculation
+    crvEnd = curve.breaks(end);
+    linSteps = linspace(0,crvEnd,crvEnd*3000);
+    
+    xyz = fnval(curve,linSteps);
+    xyzDist = diff(xyz,1,2);
+    arcLength = 0;
+    for i = 1:crvEnd*3000-1
+        arcLength = arcLength + norm(xyzDist(:,i));
+    end
+    
+    
+    % Determine #segments based on path length, sr and max velocity.
+    % Try to correct for S curve easing that increases max velocity later.
+    segs = round(sr*arcLength/vMax/(1-2*ease));
+    
+    xq = linspace(0,crvEnd,segs);
+    y = smf2(xq ,[ease*crvEnd (1-ease)*crvEnd])*crvEnd;
+    
+    % Evaluate the spline from an S distribution of points.
+    posSmf2 = fnval(curve,y)
+    
+    % Keep track of how long each move is in steps.
+    segments = segs;
+    a
+    ptsEased = posSmf2.';
+    ptsLin = 0;
+    return
+end
+
+
+%%%%%% This is for when we interpolate between sets of points.
+
+
 % Interpolation for each set of two points.
 for i = 1:nPoints
     
@@ -35,21 +76,21 @@ for i = 1:nPoints
     
     % Create spline through current and next point
     curve = cscvn(points(:,i:i+1));
-%     fnplt(curve,'r',1)
+    %     fnplt(curve,'r',1)
     
     % Determine #segments based on path length, sr and max velocity.
     % Try to correct for S curve easing that increases max velocity later.
-    segs = round(sr*travDist/vMax/(1-2*ease)); 
+    segs = round(sr*travDist/vMax/(1-2*ease));
     
     % Linearly interpolate between current and next point.
     steps = zeros(3,segs);
     for j = 1:3
         steps(j,:) = linspace(points(j,i),points(j,i+1),segs);
     end
-   
-        
+    
+    
     %%%%%%%%% The following can maybe be replaced by our own polynomial
-    %%%%%%%%% smoothstepping 
+    %%%%%%%%% smoothstepping
     
     % Find the other end of the spline description and interpolate
     % over the spline. This eliminates descending vectors and works
@@ -87,9 +128,9 @@ for i = 1:nPoints
     
     % Output eased and linear points.
     ptsLin = horzcat(ptsLin, [steps(1,:) ;steps(2,:) ;steps(3,:)] );
-        
+    
     ptsEased = [ptsEased posSmf2];
-        
+    
 end
 
 plotPaths(points,ptsEased,ptsLin);
