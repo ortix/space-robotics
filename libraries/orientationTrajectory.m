@@ -1,4 +1,4 @@
-function [EEFOrientationPtsEased]  = orientationTrajectory(currentOri,targetOri,ease,segments)
+function [EEFOrientationPtsEased]  = orientationTrajectory(currentOri,targetOri,ease,segments,discrete)
 % Generates interpolated curve for the orientation of the EEF
 
 
@@ -18,6 +18,41 @@ points = [currentOri ; targetOri].';
 EEFOrientationPtsEased = [];
 
 
+
+
+% Continuous spline between points
+if ~discrete
+curve = cscvn(points(:,1:end));
+    
+    
+    % Numerical arc length calculation
+    crvEnd = curve.breaks(end);
+    linSteps = linspace(0,crvEnd,crvEnd*3000);
+    
+    xyz = fnval(curve,linSteps);
+    xyzDist = diff(xyz,1,2);
+    arcLength = 0;
+    for i = 1:crvEnd*3000-1
+        arcLength = arcLength + norm(xyzDist(:,i));
+    end
+    
+    
+    % Determine #segments based on path length, sr and max velocity.
+    % Try to correct for S curve easing that increases max velocity later.
+    segs = round(sr*arcLength/vMax/(1-2*ease));
+    
+    xq = linspace(0,crvEnd,segs);
+    y = smf2(xq ,[ease*crvEnd (1-ease)*crvEnd])*crvEnd;
+    
+    % Evaluate the spline from an S distribution of points.
+    posSmf2 = fnval(curve,y);
+    
+    EEFOrientationPtsEased = posSmf2.';
+    
+end
+
+
+% Discrete between points.
 for i = 1:nPoints
     
     % Create spline through current and next point of orientation

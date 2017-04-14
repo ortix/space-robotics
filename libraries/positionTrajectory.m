@@ -59,7 +59,6 @@ if ~discrete
     
     % Keep track of how long each move is in steps.
     segments = segs;
-    a
     ptsEased = posSmf2.';
     ptsLin = 0;
     return
