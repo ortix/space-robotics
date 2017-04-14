@@ -16,7 +16,7 @@ end
 
 
 % Minimum radius sphere through which the EEF cannot move.
-Rmin = 0.5;
+Rmin = 0.4;
 
 
 nPoints = size(targets,1);
