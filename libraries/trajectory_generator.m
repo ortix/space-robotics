@@ -1,4 +1,4 @@
-function ptsOut = linTrajSpline(pointsIn,sr,vMax,ease)
+function [ptsEased, ptsLin] = trajectory_generator(currentPos,targets,sr,vMax,ease)
 % Takes points in a 3xn vector containing all points [x y z]' the
 % robot's EEF should pass through and generates linearly
 % interpolated paths through them, based on steps/s (sr) and max
@@ -19,25 +19,25 @@ end
 Rmin = 0.5;
 
 
-nPts = length(pointsIn);
-
+nPoints = size(targets,2);
+points = [currentPos targets];
 
 % Declare memory. I do this dynamically since we dont know how many
 % steps will be generated.
 ptsLin = [];
 ptsEased = [];
-travelTime = zeros(1,nPts);
+travelTime = zeros(1,nPoints);
 
 % Find euclidian distances between points.
-xyzDist = diff(pointsIn,1,2);
+xyzDist = diff(points,1,2);
 travDist = sqrt(  sum(  xyzDist(:,:).^2));
 
 % Interpolation for each set of two points.
-for i = 1:nPts-1
+for i = 1:nPoints
     
     % Create spline through current and next point
-    curve = cscvn(pointsIn(:,i:i+1));
-    fnplt(curve,'r',1)
+    curve = cscvn(points(:,i:i+1));
+%     fnplt(curve,'r',1)
     
     % Determine #segments based on path length, sr and max velocity.
     % Try to correct for S curve easing that increases max velocity later.
@@ -46,7 +46,7 @@ for i = 1:nPts-1
     % Linearly interpolate between current and next point.
     steps = zeros(3,segs);
     for j = 1:3
-        steps(j,:) = linspace(pointsIn(j,i),pointsIn(j,i+1),segs);
+        steps(j,:) = linspace(points(j,i),points(j,i+1),segs);
     end
    
         
@@ -97,18 +97,16 @@ end
 % Total travel time, plot and output
 totTravelTime = sum(travelTime);
 
-plotPaths(pointsIn,ptsEased,ptsLin);
-
-ptsOut = ptsEased;    
+% plotPaths(pointsIn,ptsEased,ptsLin);
 
 end
 
 % Plot function. Can be turned off
-function plotPaths(pointsIn,ptsEased,ptsLin)
-hold on
-plot3(pointsIn(1,:),pointsIn(2,:),pointsIn(3,:),'-o','LineWidth',1);
-plot3(ptsEased(1,:),ptsEased(2,:),ptsEased(3,:),'go','LineWidth',2);
-plot3(ptsLin(1,:),ptsLin(2,:),ptsLin(3,:),'bo','LineWidth',1);
-cameratoolbar
-shg
-end
+% function plotPaths(pointsIn,ptsEased,ptsLin)
+% hold on
+% plot3(pointsIn(1,:),pointsIn(2,:),pointsIn(3,:),'-o','LineWidth',1);
+% plot3(ptsEased(1,:),ptsEased(2,:),ptsEased(3,:),'go','LineWidth',2);
+% plot3(ptsLin(1,:),ptsLin(2,:),ptsLin(3,:),'bo','LineWidth',1);
+% cameratoolbar
+% shg
+% end
