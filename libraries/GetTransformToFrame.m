@@ -1,4 +1,4 @@
-function T = GetTransformToFrame(joints,angles,DH)
+function T = getTransformToFrame(joints,angles,DH)
 T = eye(4);
 for joint = joints
     % Shorthand trig

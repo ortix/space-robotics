@@ -1,7 +1,7 @@
 function theta = inverseKinematics(pos,orientation,DH,config)
 %% Build DH Transform struct
 if(isempty(DH))
-   DH = GetDH(); 
+   DH = getDH(); 
 end
 
 %% Configuration
@@ -30,7 +30,7 @@ end
 %% Calculate Transformation Matrix
 
 % XYZ coordinates of end effector (target)
-T = GetPlanarT(pos);
+T = getPlanarT(pos);
 
 % Rotate tool head so it points Z in global X
 ori = orientation;
@@ -157,10 +157,10 @@ theta(6) = atan2(Nu,Du);
 %% Correct last 3 joints angles (wrist)
 
 % Get transform matrix from base to joint 3
-T13 = GetTransformToFrame(1:3, theta(1:3),DH);
+T13 = getTransformToFrame(1:3, theta(1:3),DH);
 
 % Get rotation matrix by transforming into joint 4
-Td4 = GetPlanarT([0 0 DH(4).d]);
+Td4 = getPlanarT([0 0 DH(4).d]);
 R = inv(Td4) * inv(T13) * T;
 
 % the spherical wrist implements Euler angles
