@@ -13,7 +13,7 @@ end
 
 nPoints = size(targetOri,1);
 
-points = [currentOri targetOri];
+points = [currentOri ; targetOri].';
 
 EEFOrientationPtsEased = [];
 
@@ -35,5 +35,10 @@ for i = 1:nPoints
     ptsSMF = fnval(curve,y);
 
     EEFOrientationPtsEased = [EEFOrientationPtsEased ptsSMF];
+
+end
+
+
+EEFOrientationPtsEased = EEFOrientationPtsEased.';
 
 end
