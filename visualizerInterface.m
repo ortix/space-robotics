@@ -1,3 +1,8 @@
+addpath('gui/');
+addpath('libraries/');
+addpath('cad/');
+addpath('models/');
+
 % Open UDP Socket
 udpr = dsp.UDPReceiver('LocalIPPort',31000,'MessageDataType','double');
 setup(udpr);
