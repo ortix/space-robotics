@@ -1,4 +1,4 @@
-function theta = inverse_kinematics(pos,orientation,DH,config)
+function theta = inverseKinematics(pos,orientation,DH,config)
 %% Build DH Transform struct
 if(isempty(DH))
    DH = GetDH(); 
