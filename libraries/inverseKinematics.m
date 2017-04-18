@@ -121,7 +121,7 @@ X = Px*cos(theta(1)) + Py*sin(theta(1)) - a1; % sqrt(Px^2 + Py^2) - a1, probably
 r = sqrt(X^2 + (Pz-d1)^2);
 
 % Use the law of cosines to find theta2. psi = acos((a^2 + b^2 -c^2)/2ab). a = a2 b =
-% r, c = a3+d4. 
+% r, c^2 = a3^2 + d4^2!. 
 Psi = acos((a2^2 - d4^2 - a3^2 + X^2 + (Pz-d1)^2) / (2.0*a2*r));
 
 % If psi ==0 the furtherst position is reached. if
@@ -133,11 +133,11 @@ if ~isreal(Psi)
 end
 
 % n2 decides whether the % elbow is up or down by either adding or
-% subtracting the calculated psi.
+% subtracting the calculated psi. n2 = 1  = up (denk ik -M).
 theta(2) = atan2((Pz-d1),X) + n2*Psi;
 
 %% Joint 3
-%
+% 
 Nu = cos(theta(2))*X + sin(theta(2))*(Pz-d1) - a2;
 Du = sin(theta(2))*X - cos(theta(2))*(Pz-d1);
 theta(3) = atan2(a3,d4) - atan2(Nu, Du);
