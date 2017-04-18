@@ -10,7 +10,6 @@ for i = 1:6
        title(sprintf('q%i',i));
        xlabel('t [s]')
        ylabel('theta [rad]');
-       
 end
 
 

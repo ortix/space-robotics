@@ -133,7 +133,7 @@ for i = 1:nPoints
 end
 
 plotPaths(points,ptsEased,ptsLin);
-
+ptsLin = ptsLin.';
 ptsEased = ptsEased.';
 
 end
