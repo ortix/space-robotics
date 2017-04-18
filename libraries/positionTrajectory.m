@@ -186,4 +186,5 @@ plot3(ptsLin(1,:),ptsLin(2,:),ptsLin(3,:),'bo','LineWidth',1);
 % cameratoolbar
 camproj('perspective')
 cameratoolbar
+legend('Target Positions','Eased','Linear','Location','best');
 end
