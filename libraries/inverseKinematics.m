@@ -28,8 +28,9 @@ Trot = eye(4);
 Trot(1:3,1:3) = rotx(ori(1)*pi)*roty(ori(2)*pi)*rotz(ori(3)*pi);
 
 
-% Rotate the transformation matrix and move with the length of the
-% end effector.
+% Rotate the transformation matrix and move back with the length of the
+% end effector. This gives us point W (Ja toch? -Martin). So T =
+% T05.
 T = T*Trot*inv(DH(6).tool);
 
 
@@ -51,10 +52,12 @@ Ox = T(1,2);
 Oy = T(2,2);
 Oz = T(3,2);
 
+% Unit Z of new frame projected on world. z'
 Ax = T(1,3);
 Ay = T(2,3);
 Az = T(3,3);
 
+% Position of new frame expressed in world. P
 Px = T(1,4);
 Py = T(2,4);
 Pz = T(3,4);
@@ -63,7 +66,7 @@ Pz = T(3,4);
 %% Calculate the joint angles
 
 % Set default parameters n1, n2 and n3 configure robot arm shoulder,
-% elbow and wrist. These are the defautl settings
+% elbow and wrist. These are the default settings
 n1 = -1;    % 'r'
 n2 = -1;   % 'u'
 n4 = -1;   % 'n'
@@ -98,28 +101,43 @@ if contains(config, 'f')
 end
 
 %% Joint 1
-r=sqrt(Px^2+Py^2);
+% Calculate using top view of arm, determining rotation of the base joint. r is |P|
+% projected on world-XY plane. d2 and d3 are 0, so the asin term
+% drops out.(De sinus term kan er dus uit - Martin)
+% r = sqrt(Px^2+Py^2);
 
 if (n1 == 1)
-    theta(1)= atan2(Py,Px) + asin((d2-d3)/r);
+    theta(1) = atan2(Py,Px); %+ asin((d2-d3)/r);
 else
-    theta(1)= atan2(Py,Px)+ pi - asin((d2-d3)/r);
+    theta(1) = atan2(Py,Px) + pi; %- asin((d2-d3)/r);
 end
 
 %% Joint 2
-X= Px*cos(theta(1)) + Py*sin(theta(1)) - a1;
-r=sqrt(X^2 + (Pz-d1)^2);
-Psi = acos((a2^2-d4^2-a3^2+X^2+(Pz-d1)^2)/(2.0*a2*r));
+% Side view of the arm. Since we chose theta1 the system is now
+% planar. We first find |P_xy|.
+X = Px*cos(theta(1)) + Py*sin(theta(1)) - a1; % sqrt(Px^2 + Py^2) - a1, probably slower?
 
+% Using |P_xy| we can find the vector from point 1 to point p. 
+r = sqrt(X^2 + (Pz-d1)^2);
+
+% Use the law of cosines to find theta2. psi = acos((a^2 + b^2 -c^2)/2ab). a = a2 b =
+% r, c = a3+d4. 
+Psi = acos((a2^2 - d4^2 - a3^2 + X^2 + (Pz-d1)^2) / (2.0*a2*r));
+
+% If psi ==0 the furtherst position is reached. if
+% point P lies to far, the arm cannot reach the point.
 if ~isreal(Psi)
     warning('point not reachable');
     theta = [NaN NaN NaN NaN NaN NaN];
     return
 end
 
+% n2 decides whether the % elbow is up or down by either adding or
+% subtracting the calculated psi.
 theta(2) = atan2((Pz-d1),X) + n2*Psi;
 
 %% Joint 3
+%
 Nu = cos(theta(2))*X + sin(theta(2))*(Pz-d1) - a2;
 Du = sin(theta(2))*X - cos(theta(2))*(Pz-d1);
 theta(3) = atan2(a3,d4) - atan2(Nu, Du);

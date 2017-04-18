@@ -184,7 +184,7 @@ plot3(pointsIn(1,:),pointsIn(2,:),pointsIn(3,:),'-o','LineWidth',1);
 plot3(ptsEased(1,:),ptsEased(2,:),ptsEased(3,:),'go','LineWidth',2);
 plot3(ptsLin(1,:),ptsLin(2,:),ptsLin(3,:),'bo','LineWidth',1);
 % cameratoolbar
-camproj('perspective')
-cameratoolbar
+camproj('perspective');
+%cameratoolbar
 legend('Target Positions','Eased','Linear','Location','best');
 end
