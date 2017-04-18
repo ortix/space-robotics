@@ -50,8 +50,8 @@ endPos = traj.breaks(end);    % End of the spline interpolation
 xq = linspace(0,endPos,n);
 
 % 0.1 and 0.9 are inflection points
-y = smf2(xq ,[0.1*endPos 0.9*endPos])*endPos;
-
+y = smf2(xq ,[0 endPos])*endPos;
+y2 = smf2(xq ,[0.2*endPos 0.8*endPos])*endPos;
 
 % This generates a linear result
 posLin = fnval(traj,xq);
@@ -61,8 +61,13 @@ posSmf2 = fnval(traj,y);
 
 
 % Plot position over path
- plot3(posLin(1,:),posLin(2,:),posLin(3,:),'ko','LineWidth',1); %
+plot3(posLin(1,:),posLin(2,:),posLin(3,:),'ko','LineWidth',1); %
 % Linear
 plot3(posSmf2(1,:),posSmf2(2,:),posSmf2(3,:),'bo','LineWidth',1); 
 
-positionTrajectory(xyz,50,4,0.05);
+%positionTrajectory(xyz,50,4,0.05);
+
+figure;
+% Report plotting
+plot(xq,y,xq,y2,xq,xq,'Linewidth',2)
+legend('SMF smoothed, minimal','SMF smoothed, 0.2','Linear','Location','best');

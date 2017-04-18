@@ -16,7 +16,7 @@ end
 
 
 % Minimum radius sphere through which the EEF cannot move.
-Rmin = 0.4;
+Rmin = 0.2;
 
 
 nPoints = size(targets,1);
@@ -42,6 +42,7 @@ if ~discrete
     xyz = fnval(curve,linSteps);
     xyzDist = diff(xyz,1,2);
     arcLength = 0;
+    
     for i = 1:crvEnd*3000-1
         arcLength = arcLength + norm(xyzDist(:,i));
     end
@@ -54,18 +55,52 @@ if ~discrete
     xq = linspace(0,crvEnd,segs);
     y = smf2(xq ,[ease*crvEnd (1-ease)*crvEnd])*crvEnd;
     
-    % Evaluate the spline from an S distribution of points.
-    posSmf2 = fnval(curve,y)
+    % Evaluate the spline from an S distribution of points. These
+    % are column vectors.
+    ptsEased = fnval(curve,y);
+    ptsLin = fnval(curve,xq);
     
     % Keep track of how long each move is in steps.
     segments = segs;
-    ptsEased = posSmf2.';
-    ptsLin = 0;
+    
+    % Now check whether any of the points lie inside a minimum
+    % radius.
+    for h = 1:segs
+        
+        % Get vector norm from 0..point.
+        normPtsLin = norm(ptsLin(:,h));
+        normPtSMF = norm(ptsEased(:,h));
+        
+        % If the vector is smaller than Rmin, scale it to outside
+        % the minimum radius, for both linear and smf points.
+        if normPtsLin < Rmin
+            ptsLin(:,h) = ptsLin(:,h)./normPtsLin .* Rmin;
+        end
+        
+        if normPtSMF < Rmin
+            ptsEased(:,h) = ptsEased(:,h)./normPtSMF .* Rmin;
+        end
+        
+    end
+    
+    % Plot and give Row vectors out.
+    
+    
+    plotPaths(points,ptsEased,ptsLin);
+    ptsLin = ptsLin.';
+    ptsEased = ptsEased.';
+    
     return
 end
 
 
+
+
+
 %%%%%% This is for when we interpolate between sets of points.
+
+
+
 
 
 % Interpolation for each set of two points.
@@ -138,6 +173,9 @@ ptsEased = ptsEased.';
 
 end
 
+
+
+
 % Plot function. Can be turned off
 function plotPaths(pointsIn,ptsEased,ptsLin)
 close all; hold on;grid on; box on; axis equal;
@@ -146,5 +184,6 @@ plot3(pointsIn(1,:),pointsIn(2,:),pointsIn(3,:),'-o','LineWidth',1);
 plot3(ptsEased(1,:),ptsEased(2,:),ptsEased(3,:),'go','LineWidth',2);
 plot3(ptsLin(1,:),ptsLin(2,:),ptsLin(3,:),'bo','LineWidth',1);
 % cameratoolbar
-
+camproj('perspective')
+cameratoolbar
 end
