@@ -28,16 +28,16 @@ acc = 0;
 
 % A row of dummy velocites for each q in JOINT SPACE. Starts and ends on
 % zero
-velocities = [zeros(1,nPts) ;
-             rand(nPts-2,nPts)
-             zeros(1,nPts)];
-%velocities = zeros(nPts,1);
+% velocities = [zeros(1,nPts) ;
+%              rand(nPts-2,nPts)
+%              zeros(1,nPts)];
+velocities = zeros(nPts,1);
 
 % A time vector containing the timestamp of each point.
 time = [0 5 10 15 20 25 30 45 50];
 
 % Calculate how many steps the algorithm wil calculate.
-amountOfSteps = time(end)-time(1)*sr;
+amountOfSteps = (time(end)-time(1))*sr;
 
 % We only save the angles.
 qOut = zeros(amountOfSteps,6);
@@ -66,20 +66,36 @@ for j = 1:nPts-1
 end
 
 
-% Plot points
-plot3(positions(:,1),positions(:,2),positions(:,3),'ro','LineWidth',1);
-box on
-shg
-axis equal
-camproj('perspective')
 
 % Plot q
 figure
 plot(time,q,'b-.')
-
 
 % Interpolated q
 hold on
 timeVec = linspace(time(1),time(end),length(qOut));
 plot(timeVec,qOut);
 legend('q1','q2','q3','q4','q5','q6','q1','q2','q3','q4','q5','q6','Location','best');
+
+
+% Plot points and check using FK how the path is generated.
+figure
+plot3(positions(:,1),positions(:,2),positions(:,3),'r-o','LineWidth',1);
+box on
+shg
+axis equal
+camproj('perspective')
+
+% Run FK for each set of q found.
+FKpoints = zeros(amountOfSteps,3);
+for g = 1:amountOfSteps
+    FKpoints(g,:) = forwardKinematics(qOut(g,:));
+end
+
+hold on
+plot3(FKpoints(:,1),FKpoints(:,2),FKpoints(:,3),'b','LineWidth',2);
+legend('Points entered into trajectory','Interpolated q','Location','Best');
+
+%text(positions(1,:),positions(2,:),positions(3,:),[repmat('
+%',nPts,1), num2str((1:nPts)')]) bugged
+
