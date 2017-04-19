@@ -137,12 +137,14 @@ end
 theta(2) = atan2((Pz-d1),X) + n2*Psi;
 
 %% Joint 3
-% 
+% nog steeds het xy Z vlak tegen de zijkant van de robot aan. Teken
+% wat gare driehoeken en theta3 is de binnenhoek van a3 en arm d4.
 Nu = cos(theta(2))*X + sin(theta(2))*(Pz-d1) - a2;
 Du = sin(theta(2))*X - cos(theta(2))*(Pz-d1);
 theta(3) = atan2(a3,d4) - atan2(Nu, Du);
 
 %% Joint 4
+% 
 Y = cos(theta(1))*Ax + sin(theta(1))*Ay;
 M2 = sin(theta(1))*Ax - cos(theta(1))*Ay ;
 M1 =  ( cos(theta(2)-theta(3)) )*Y + ( sin(theta(2)-theta(3)) )*Az;

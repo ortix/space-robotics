@@ -1,0 +1,77 @@
+% smoothstepping between two values using quintic polynomials.
+clear all;
+
+% Time and #steps taken based on sample rate in steps/s.
+t0 = 0;
+tf = 10;
+sr = 500;
+
+segments = (tf-t0)*sr;
+t = linspace(t0,tf,segments);
+
+
+% Place
+q0 = 0;
+qf = 50;
+
+% Velocity
+v0 = 0;
+vf = 2;
+
+% Acceleration
+ac0 = 0;
+acf = 0;
+
+% Jerk
+
+% Create system to generating a quintic spline that adheres to start
+% and end constraints for pos,vel,acc.
+% q(t) = a0 + a1*t +a2*t^2 +a3*t^3 +a4*t^4 +a5*t^5
+% solve for a0...a5
+
+A = [1 t0 t0^2    t0^3      t0^4        t0^5
+    0  1 2*t0    3*t0^2    4*t0^3      5*t0^4
+    0  0 2       6*t0      12*t0^2     20*t0^3
+    1 tf tf^2    tf^3      tf^4        tf^5
+    0  1 2*tf    3*tf^2    4*tf^3      5*tf^4
+    0  0 2       6*tf      12*tf^2     20*tf^3 ];
+
+B = [q0 v0 ac0 qf vf acf].';
+a = A\B;
+
+%Numeric evaluation of polynomial for real time execution
+q = zeros(0,segments);  % position
+qd = zeros(0,segments); % velocity
+qdd = zeros(0,segments);% acceleration
+qddd = zeros(0,segments); %jerk
+
+for i = 1:segments
+    q(i) = a(1) + a(2)*t(i) + a(3)*t(i)^2 + a(4)*t(i)^3 + a(5)*t(i)^4 + a(6)*t(i)^5;
+    qd(i) = a(2) + 2*a(3)*t(i) +3*a(4)*t(i)^2 + 4*a(5)*t(i)^3 + 5*a(6)*t(i)^4;
+    qdd(i) = 2*a(3) + 6*a(4)*t(i) + 12*a(5)*t(i)^2 + 20*a(6)*t(i)^3;
+    qddd(i) = 6*a(4) + 24*a(5)*t(i) + 60*a(6)*t(i)^2;
+end
+
+
+% Plotting so we see what we are doing.
+clf;
+shg
+plot(t,q,t,qd,t,qdd,t,qddd);
+legend('Position','Velocity','Acceleration','jerk','Location','Best');
+
+%  Symbolically.
+%  Create polynomial using found constants.
+%  syms t;
+%  location = a(1) + a(2)*t + a(3)*t^2 + a(4)*t^3 + a(5)*t^4 + a(6)*t^5;
+%  velocity = a(2) + 2*a(3)*t +3*a(4)*t^2 + 4*a(5)*t^3 + 5*a(6)*t^4;
+%  acceleration = 2*a(3) + 6*a(4)*t + 12*a(5)*t^2 + 20*a(6)*t^3;
+%
+%  clf;
+%  shg
+%  hold on;
+%
+%  fplot(location,[t0 tf]);
+%  fplot(velocity,[t0 tf]);
+%  fplot(acceleration,[t0 tf]);
+%
+%  legend('Position','Velocity','Acceleration','Location','Best');
