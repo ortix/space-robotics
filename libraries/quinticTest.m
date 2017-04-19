@@ -2,7 +2,8 @@ close all;
 clear all;
 
 % Load points
-load('fixed_8.mat');
+%load('fixed_8.mat');
+load('fixed_8_original.mat');
 nPts = size(positions,1);
 
 %%%
@@ -10,7 +11,7 @@ nPts = size(positions,1);
 % Run IK for all points with a dummy orientation vector.
 orientation = [1 0 0];
 DH = getDH();
-config = 'ru';
+config = 'lun';
 
 % Get all q values for all points and run FK to verify.
 q = zeros(nPts,6);
@@ -20,9 +21,7 @@ for i=1:nPts
     FKpoints(i,:) = forwardKinematics(q(i,:));
 end
 
-%%%
-
-% Stuff needed for trajectory generation.
+%%% Stuff needed for trajectory generation.
 % Sample rate and acceleration constraints for each point. Dummy
 % values.
 sr = 50;
@@ -35,17 +34,18 @@ acc = 0;
 %              zeros(1,nPts)];
 velocities = zeros(nPts,1);
 
-% A time vector containing the timestamp of each point.
-time = [0 5 10 15 20 25 30 45 50];
+% A time vector containing the timestamp of each point. Make sure it
+% has the right # of entries.
+time = [0 5 10 15 20 25 30 45];
 
-% Calculate how many steps the algorithm wil calculate.
+% Calculate how many steps the algorithm wil calculate and declare
+% memory.
 amountOfSteps = (time(end)-time(1))*sr;
-
-% We only save the angles.
-qOut = zeros(amountOfSteps,6);
+qOut = zeros(amountOfSteps,6); % We only save the angles.
 
 % For all six angles, interpolate between current and next taking point
-% specific constants into account.
+% specific constants into account. 'yes' turns on plot function, but
+% for each interpolation call...
 for j = 1:nPts-1
     for h = 1:6
         % Run smoothstep over each pair of q.
