@@ -1,29 +1,19 @@
-close all;
+function q_out = positionTrajectory2(positions,sr,vMax,cfg,orientation)
 
-% Load points
-%load('fixed_8.mat');
-load('fixed_8_original.mat');
 nPts = size(positions,1);
 
-%%%
-
 % Run IK for all points with a dummy orientation vector.
-orientation = [1 0 0];
 DH = getDH();
-config = 'lun';
 
 % Get all q values for all points and run FK to verify.
 q = zeros(nPts,6);
 FKpoints = zeros(nPts,3);
 for i=1:nPts
-    q(i,:) = inverseKinematics(positions(i,:),orientation,DH,config);
+    q(i,:) = inverseKinematics(positions(i,:),orientation,DH,cfg);
     FKpoints(i,:) = forwardKinematics(q(i,:));
 end
 
-%%% Stuff needed for trajectory generation.
-% Sample rate and acceleration constraints for each point. Dummy
-% values.
-sr = 50;
+% Acceleration at endpoint is set to 0
 acc = 0;
 
 % A row of dummy velocites for each q in JOINT SPACE. Starts and ends on
@@ -33,31 +23,30 @@ acc = 0;
 %              zeros(1,nPts)];
 velocities = zeros(nPts,1);
 
-% A time vector containing the timestamp of each point. Make sure it
-% has the right # of entries.
+% Calculate distances between points
+distances = abs(diff(positions));
+distances = diag(sqrt(distances*distances.'));
 
-% This can be changed to t = d/v where d is the distance between ptp and v
-% is the velocity desired of the END EFFECTOR (may be not desireable)
-time = [0 5 10 15 20 25 30 45];
+% A time vector containing the timestamp of each point. This is based the
+% the maximum velocity of the END EFFECTOR!
+time = zeros(1,size(distances,1)+1);
+time(2:end) = distances/vMax;
 
 % Calculate how many steps the algorithm wil calculate and declare
 % memory.
-amountOfSteps = (time(end)-time(1))*sr;
+amountOfSteps = sum(round(sr*time(2:end)));
 qOut = zeros(amountOfSteps,6); % We only save the angles.
 
 % For all six angles, interpolate between current and next taking point
-% specific constants into account. 'yes' turns on plot function, but
+% specific constants into account. '1' turns on plot function, but
 % for each interpolation call...
-tic
 for j = 1:nPts-1
     for h = 1:6
         % Run smoothstep over each pair of q.
-
         [qTemp, ~,~,~] = smoothstep(time(j),time(j+1),...
             q(j,h),q(j+1,h),...
             velocities(j),velocities(j+1),...
             acc,acc,sr,0);
-
         
         % Create index to paste output in
         if j == 1
@@ -71,8 +60,6 @@ for j = 1:nPts-1
     end
     
 end
-
-
 
 % Plot q
 figure
@@ -106,6 +93,4 @@ axis equal
 camproj('perspective')
 legend('Points entered into trajectory','FK points trajectory','Interpolated q','Location','Best');
 
-%text(positions(1,:),positions(2,:),positions(3,:),[repmat('
-%',nPts,1), num2str((1:nPts)')]) bugged
-
+end

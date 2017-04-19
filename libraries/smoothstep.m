@@ -1,4 +1,4 @@
-function [q, qd, qdd, qddd] = smoothstep(t0, tf, q0, qf, v0, vf, ac0, acf, sr,plot)
+function [q, qd, qdd, qddd] = smoothstep(t0, tf, q0, qf, v0, vf, ac0, acf, sr,plt)
 % Smoothstepping between two values using quintic polynomials.
 % Time and #steps taken based on sample rate in steps/s.
 
@@ -6,11 +6,11 @@ function [q, qd, qdd, qddd] = smoothstep(t0, tf, q0, qf, v0, vf, ac0, acf, sr,pl
 % [qTemp, ~,~,~] = smoothstep(time(j),time(j+1),...
 %           q(j,h),q(j+1,h),...
 %           velocities(j),velocities(j+1),...
-%           acc,acc,sr,'no');
+%           acc,acc,sr,1);
 
 
 % Create time vector based on the time and sample rate.
-segments = (tf-t0)*sr;
+segments = round((tf-t0)*sr);
 t = linspace(t0,tf,segments);
 
 
@@ -30,10 +30,10 @@ B = [q0 v0 ac0 qf vf acf].';
 a = A\B;
 
 %Numeric evaluation of polynomial for real time execution
-q = zeros(0,segments);    % position
-qd = zeros(0,segments);   % velocity
-qdd = zeros(0,segments);  % acceleration
-qddd = zeros(0,segments); %jerk
+q = zeros(1,segments);    % position
+qd = zeros(1,segments);   % velocity
+qdd = zeros(1,segments);  % acceleration
+qddd = zeros(1,segments); %jerk
 
 for i = 1:segments
     tCur = t(i);  % Only do array lookup once.
@@ -43,7 +43,7 @@ for i = 1:segments
     qddd(i) = 6*a(4) + 24*a(5)*tCur + 60*a(6)*tCur^2;
 end
 
-    if contains(plot,'yes')
+    if (plt == 1)
         plotQ(t,q,qd,qdd,qddd);
     end
     
