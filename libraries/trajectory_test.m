@@ -12,12 +12,14 @@ omz = sqrt(1-z.^2);
 xyz = [cos(t).*omz; sin(t).*omz; z];
 %xyz = [0 0 0 ; 1 1 1 ].';
 
+points
+
 % Use curve fitting to fit a spline through all points. This is our
 % path generator.
 traj = cscvn(xyz(:,1:end ));
 
 % Plot points and text
-plot3(xyz(1,:),xyz(2,:),xyz(3,:),'ro','LineWidth',2);
+plot3(xyz(1,:),xyz(2,:),xyz(3,:),'-o','LineWidth',2);
 %text(xyz(1,:),xyz(2,:),xyz(3,:),[repmat('  ',npts,1), num2str((1:npts)')])
 
 
@@ -71,3 +73,5 @@ figure;
 % Report plotting
 plot(xq,y,xq,y2,xq,xq,'Linewidth',2)
 legend('SMF smoothed, minimal','SMF smoothed, 0.2','Linear','Location','best');
+
+

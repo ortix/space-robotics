@@ -1,28 +1,18 @@
-% smoothstepping between two values using quintic polynomials.
-clear all;
-
+function [q, qd, qdd, qddd] = smoothstep(t0, tf, q0, qf, v0, vf, ac0, acf, sr,plot)
+% Smoothstepping between two values using quintic polynomials.
 % Time and #steps taken based on sample rate in steps/s.
-t0 = 0;
-tf = 10;
-sr = 500;
 
+% Example 
+% [qTemp, ~,~,~] = smoothstep(time(j),time(j+1),...
+%           q(j,h),q(j+1,h),...
+%           velocities(j),velocities(j+1),...
+%           acc,acc,sr,'no');
+
+
+% Create time vector based on the time and sample rate.
 segments = (tf-t0)*sr;
 t = linspace(t0,tf,segments);
 
-
-% Place
-q0 = 0;
-qf = 50;
-
-% Velocity
-v0 = 0;
-vf = 2;
-
-% Acceleration
-ac0 = 0;
-acf = 0;
-
-% Jerk
 
 % Create system to generating a quintic spline that adheres to start
 % and end constraints for pos,vel,acc.
@@ -40,24 +30,36 @@ B = [q0 v0 ac0 qf vf acf].';
 a = A\B;
 
 %Numeric evaluation of polynomial for real time execution
-q = zeros(0,segments);  % position
-qd = zeros(0,segments); % velocity
-qdd = zeros(0,segments);% acceleration
+q = zeros(0,segments);    % position
+qd = zeros(0,segments);   % velocity
+qdd = zeros(0,segments);  % acceleration
 qddd = zeros(0,segments); %jerk
 
 for i = 1:segments
-    q(i) = a(1) + a(2)*t(i) + a(3)*t(i)^2 + a(4)*t(i)^3 + a(5)*t(i)^4 + a(6)*t(i)^5;
-    qd(i) = a(2) + 2*a(3)*t(i) +3*a(4)*t(i)^2 + 4*a(5)*t(i)^3 + 5*a(6)*t(i)^4;
-    qdd(i) = 2*a(3) + 6*a(4)*t(i) + 12*a(5)*t(i)^2 + 20*a(6)*t(i)^3;
-    qddd(i) = 6*a(4) + 24*a(5)*t(i) + 60*a(6)*t(i)^2;
+    tCur = t(i);  % Only do array lookup once.
+    q(i) = a(1) + a(2)*tCur + a(3)*tCur^2 + a(4)*tCur^3 + a(5)*tCur^4 + a(6)*tCur^5;
+    qd(i) = a(2) + 2*a(3)*tCur +3*a(4)*tCur^2 + 4*a(5)*tCur^3 + 5*a(6)*tCur^4;
+    qdd(i) = 2*a(3) + 6*a(4)*tCur + 12*a(5)*tCur^2 + 20*a(6)*tCur^3;
+    qddd(i) = 6*a(4) + 24*a(5)*tCur + 60*a(6)*tCur^2;
 end
 
+    if contains(plot,'yes')
+        plotQ(t,q,qd,qdd,qddd);
+    end
+    
+    % Make sure output is a column
+    q = q.';
+    qd = qd.';
+    qdd = qdd.';
+    qddd = qddd.';
+end
 
-% Plotting so we see what we are doing.
-clf;
+function plotQ(t,q,qd,qdd,qddd)
+close all;
 shg
 plot(t,q,t,qd,t,qdd,t,qddd);
 legend('Position','Velocity','Acceleration','jerk','Location','Best');
+end
 
 %  Symbolically.
 %  Create polynomial using found constants.
