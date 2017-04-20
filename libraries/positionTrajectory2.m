@@ -1,69 +1,79 @@
-function [q_out, points_out, ornt_out] = positionTrajectory2(positions,sr,vMax,cfg,orientations,plt)
-
+function [q_out, positions_out, ornt_out] = positionTrajectory2(positions,sr,vMax,cfg,orientations,plt)
+% debug: positionTrajectory2(positions,100,0.1,'lu',orientations,1)
 nPts = size(positions,1);
 
-% Run IK for all points with a dummy orientation vector.
-DH = getDH();
+% Run IK for all points.
 
 % Get all q values for all points and run FK to verify.
 q = zeros(nPts,6);
 FKpoints = zeros(nPts,3);
+
 for i=1:nPts
-    q(i,:) = inverseKinematics(positions(i,:),orientations(i,:),DH,cfg);
+    q(i,:) = inverseKinematics(positions(i,:),orientations(i,:),[],cfg);
     FKpoints(i,:) = forwardKinematics(q(i,:));
 end
-
-% Acceleration at endpoint is set to 0
+q
+% Joint velocity and acceleration is set to zero at all points, but they
+% could be passed as an argument to smoothstep(). We would have to
+% find the right velocity and acceleration values for each point though.
 acc = 0;
 
-% A row of dummy velocites for each q in JOINT SPACE. Starts and ends on
-% zero
-% velocities = [zeros(1,nPts) ;
-%              rand(nPts-2,nPts)
-%              zeros(1,nPts)];
+% Joint velocities
 velocities = zeros(nPts,1);
 
-% Calculate distances between points
+% A dummy value matrix would look the following nad have size(nPts, 6).
+% velocities/accelerations = [zeros(1,nPts) ;
+%              rand(nPts-2,nPts)
+%              zeros(1,nPts)];
+% start and end point velocity is zero.
+
+
+% Calculating movement absTime based on a vMax. This is a vMax in XYZ/task space!
+% We could also pass a absTimestamp for each point.
+
+% Calculate distances between points.
 distances = abs(diff(positions));
 distances = diag(sqrt(distances*distances.'));
 
-% We create a time vector determining how long each path to a point
+% We create a absTime vector determining how long each path to a point
 % should take. e.g. A-B takes 1 second and B-C takes 0.9 seconds.
-time = zeros(1,size(distances,1)+1);
-time(2:end) = distances/vMax;
+dTime = distances/vMax;
+
+% Create absTimestamp vector with absolute absTimes.
+absTime = [0 cumsum(dTime,1).'];
 
 % Calculate how many steps the algorithm wil calculate and declare
-% memory.
-amountOfSteps = ceil(time(end)-time(1))*sr;
+% memory. Total absTime*sr.
+amountOfSteps = ceil(absTime(end)*sr);
 qOut = zeros(amountOfSteps,6); % We only save the angles.
+
+
 
 % For all six angles, interpolate between current and next taking point
 % specific constants into account. '1' turns on plot function, but
 % for each interpolation call...
+
 for j = 1:nPts-1
+    
+    
+    
+    % Run smoothstep over each pair of q. (quintic spline
+    % interpolation)
     for h = 1:6
         
-        % Run smoothstep over each pair of q.
-        [qTemp, ~,~,~] = smoothstep(time(j),time(j+1),...
+        
+        [qTemp, ~,~,~] = smoothstep(absTime(j),absTime(j+1),...
             q(j,h),q(j+1,h),...
             velocities(j),velocities(j+1),...
             acc,acc,sr,0);
         
-        % Het gaat bad als de lengte van het volgende stuk van het
-        % pad korter is dan de vorige. Dan is de range leeg. Dit
-        % komt omdat de tijdsvector nu de tijd is tussen 2 punten en
-        % niet de tijd van het punt zelf. Die wil je namelijk niet
-        % meegeven als gebruiker maar juist velocity. De tijd reken
-        % je uit op basis van de afstand van de punten en de
-        % velocity die je meegeeft aan je EEF. Tot slot zou er nog
-        % gekeken kunnen worden naar het verzadigen van de joint
-        % velocity. Dan moet wel de hoeveelheid samples die nodig
-        % zijn uitgerekt worden, maar dat is te ingewikkeld (en/of 
-        % langzaam) en raad ik af. Peace.
+       
+        % Create range to paste output. The first range voor pts 1 to 2 starts at 1,
+        % subsequent ranges start at the last value + 1.
         if j == 1
-            range = 1:ceil(time(j+1)*sr);
-        else
-            range = ceil(time(j)*sr)+1:ceil(time(j+1)*sr);
+            range = 1:size(qTemp,1);  % Transpose for readability
+        elseif h == 1  % For every new j. It did it for every new h... 
+            range = range(end)+1:range(end)+size(qTemp,1);
         end
         
         qOut(range,h) = qTemp;
@@ -72,36 +82,43 @@ end
 
 q_out = qOut;
 
+
 % Run FK for each set of q found.
 FKpointsEase = zeros(amountOfSteps,3);
 ornt_out = zeros(amountOfSteps,3);
-for g = 1:amountOfSteps
+
+for g = 1:size(qOut,1)
     [FKpointsEase(g,:), ~, ornt_out(g,:)] = forwardKinematics(qOut(g,:));
 end
 
-points_out = FKpointsEase;
+positions_out = FKpointsEase;
+
+
+
+
+
 
 if(plt)
     
-    % Plot q
+    %     Plot q
     figure
-    plot(time,q,'b-.')
+    plot(absTime,q,'b-.');
     
-    % Interpolated q
+    %     Interpolated q
     hold on
-    timeVec = linspace(time(1),time(end),length(qOut));
-    plot(timeVec,qOut);
+    absTimeVec = linspace(absTime(1),absTime(end),size(qOut,1));
+    plot(absTimeVec,qOut);
     legend('q1','q2','q3','q4','q5','q6','q1','q2','q3','q4','q5','q6','Location','best');
     
     
-    % Plot points and also plot the FK points
+    %     Plot points and also plot the FK points
     figure
     plot3(positions(:,1),positions(:,2),positions(:,3),'r-o','LineWidth',1);
     hold on
     plot3(FKpoints(:,1),FKpoints(:,2),FKpoints(:,3),'b-.o','LineWidth',1);
     
     
-    % Now plot the path generated by interpolating q.
+    %     Now plot the path generated by interpolating q.
     plot3(FKpointsEase(:,1),FKpointsEase(:,2),FKpointsEase(:,3),'b','LineWidth',2);
     box on
     shg
@@ -110,4 +127,6 @@ if(plt)
     legend('Points entered into trajectory','FK points trajectory','Interpolated q','Location','Best');
     
 end
+
+% Function end
 end

@@ -7,14 +7,14 @@ function [q, qd, qdd, qddd] = smoothstep(t0, tf, q0, qf, v0, vf, ac0, acf, sr,pl
 %           q(j,h),q(j+1,h),...
 %           velocities(j),velocities(j+1),...
 %           acc,acc,sr,1);
-
+% example : smoothstep(5, 15, 1, 4, 6, 0, 0, 0, 50,1)
 
 % Create time vector based on the time and sample rate.
 segments = ceil((tf-t0)*sr);
 t = linspace(t0,tf,segments);
 
 
-% Create system to generating a quintic spline that adheres to start
+% Create system for generating a quintic spline that adheres to start
 % and end constraints for pos,vel,acc.
 % q(t) = a0 + a1*t +a2*t^2 +a3*t^3 +a4*t^4 +a5*t^5
 % solve for a0...a5

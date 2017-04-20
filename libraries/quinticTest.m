@@ -59,11 +59,12 @@ for j = 1:nPts-1
             acc,acc,sr,0);
 
         
-        % Create index to paste output in
+        % Create range to paste output. The first range voor pts 1 to 2 starts at 1,
+        % subsequent ranges start at the last value + 1.
         if j == 1
-            range = 1:time(j+1)*sr;
-        else
-            range = (time(j)*sr)+1:time(j+1)*sr;
+            range = 1:size(qTemp,1);  % Transpose for readability
+        elseif h == 1  % For every new cycle through the q's
+            range = range(end)+1:range(end)+size(qTemp,1);
         end
         
         % append to output vector
