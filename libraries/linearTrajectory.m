@@ -1,9 +1,9 @@
-function traj = linearTrajectory(currentPos,targets,Fs,vMax)
+function traj = linearTrajectory(positions,Fs,vMax)
 
 % Fun experiment to see if we can optimize the trajector generator.
 % Conclusion: yes we can by pre-allocating memory.
 
-path = [currentPos; targets];
+path = positions;
 nPoints = size(path,1);
 
 % Calculate distances

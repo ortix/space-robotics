@@ -10,7 +10,7 @@ function [q, qd, qdd, qddd] = smoothstep(t0, tf, q0, qf, v0, vf, ac0, acf, sr,pl
 
 
 % Create time vector based on the time and sample rate.
-segments = round((tf-t0)*sr);
+segments = ceil((tf-t0)*sr);
 t = linspace(t0,tf,segments);
 
 
