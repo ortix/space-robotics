@@ -12,21 +12,6 @@ for i=1:nPts
     q(i,:) = inverseKinematics(positions(i,:),orientations(i,:),[],cfg);
     FKpoints(i,:) = forwardKinematics(q(i,:));
 end
-q
-% Joint velocity and acceleration is set to zero at all points, but they
-% could be passed as an argument to smoothstep(). We would have to
-% find the right velocity and acceleration values for each point though.
-acc = 0;
-
-% Joint velocities
-velocities = zeros(nPts,1);
-
-% A dummy value matrix would look the following nad have size(nPts, 6).
-% velocities/accelerations = [zeros(1,nPts) ;
-%              rand(nPts-2,nPts)
-%              zeros(1,nPts)];
-% start and end point velocity is zero.
-
 
 % Calculating movement absTime based on a vMax. This is a vMax in XYZ/task space!
 % We could also pass a absTimestamp for each point.
@@ -41,9 +26,29 @@ dTime = distances/vMax;
 
 % Create absTimestamp vector with absolute absTimes.
 absTime = [0 cumsum(dTime,1).'];
+%absTime = [0 cumsum((2*ones(nPts-1,1))).'];  % Dummy vector.
+
+% Joint acceleration is set to zero at all points, but 
+% could be passed as an argument to smoothstep(). We would have to
+% find the right velocity and acceleration values for each point though.
+acc = 0;
+
+% Joint velocities
+% velocities = zeros(nPts,1);
+
+% We assume accelerate to full speed between point 0...1. This
+% yields a smoother spline. This should be calculated and passed to
+% the interpolator for best results. Same goes for acceleration.
+velocities = [zeros(1,6) ;
+             vMax*ones(nPts-2,6)
+             zeros(1,6)];
+         
+
+%velocities = zeros(nPts, 6); % start and end point velocity is zero.
 
 % Calculate how many steps the algorithm wil calculate and declare
-% memory. Total absTime*sr.
+% memory. This is not exact, since there are some further ceil()
+% calls.
 amountOfSteps = ceil(absTime(end)*sr);
 qOut = zeros(amountOfSteps,6); % We only save the angles.
 
@@ -57,14 +62,14 @@ for j = 1:nPts-1
     
     
     
-    % Run smoothstep over each pair of q. (quintic spline
+    % Run smoothstep() over each pair of q. (quintic spline
     % interpolation)
     for h = 1:6
         
         
         [qTemp, ~,~,~] = smoothstep(absTime(j),absTime(j+1),...
             q(j,h),q(j+1,h),...
-            velocities(j),velocities(j+1),...
+            velocities(j,h),velocities(j+1,h),...
             acc,acc,sr,0);
         
        
@@ -84,8 +89,8 @@ q_out = qOut;
 
 
 % Run FK for each set of q found.
-FKpointsEase = zeros(amountOfSteps,3);
-ornt_out = zeros(amountOfSteps,3);
+FKpointsEase = size(qOut,1);
+ornt_out = size(qOut,1);
 
 for g = 1:size(qOut,1)
     [FKpointsEase(g,:), ~, ornt_out(g,:)] = forwardKinematics(qOut(g,:));
