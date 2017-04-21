@@ -13,6 +13,19 @@ function [q, qd, qdd, qddd] = smoothstep(t0, tf, q0, qf, v0, vf, ac0, acf, sr,pl
 segments = ceil((tf-t0)*sr);
 t = linspace(t0,tf,segments);
 
+% Check if interpolation is asked to interpolate between the same
+% values with constant speed and return.
+% if q0 == qf && v0 ==vf
+%     q = q0*ones(segments,1);
+%     qd = zeros(segments,1);
+%     qdd = zeros(segments,1);
+%     qddd = zeros(segments,1);
+%     return
+% end
+
+
+
+
 
 % Create system for generating a quintic spline that adheres to start
 % and end constraints for pos,vel,acc.
