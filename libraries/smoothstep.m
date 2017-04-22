@@ -57,7 +57,7 @@ for i = 1:segments
 end
 
     if (plt == 1)
-        plotQ(t,q,qd,qdd,qddd);
+        plotQ(t,q,qd,qdd,qddd,v0,vf,ac0,acf);
     end
     
     % Make sure output is a column
@@ -67,11 +67,20 @@ end
     qddd = qddd.';
 end
 
-function plotQ(t,q,qd,qdd,qddd)
+function plotQ(t,q,qd,qdd,qddd,v0,vf,ac0,acf)
 close all;
 shg
 plot(t,q,t,qd,t,qdd,t,qddd);
-legend('Position','Velocity','Acceleration','jerk','Location','Best');
+legend('Position','Velocity','Acceleration','jerk','Location','north');
+title('Quintic interpolation polynomial with start end conditions');
+xlabel('Time');
+ylabel('q');
+
+% Create annotation
+dim = [0.15 0.6 0.1 0.3];
+str = {['v_0: ' num2str(v0)], ['v_f: ' num2str(vf)],  ['a_0: ' num2str(ac0)], ['a_f: ' num2str(acf)] };
+annotation('textbox',dim,'String',str,'FitBoxToText','on');
+
 end
 
 %  Symbolically.
