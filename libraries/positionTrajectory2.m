@@ -28,7 +28,7 @@ dTime(~dTime) = 0.1;   % If two points are in the same position dTime = 0 and bi
 % Create absTimestamp vector with absolute absTimes.
 absTime = [0 cumsum(dTime,1).'];
 
-%absTime = [0 cumsum((2*ones(nPts-1,1))).'];  % Dummy vector.
+%absTime = [0 cumsum((2*ones(nPts-1,1))).']  % Dummy vector.
 
 
 
@@ -38,7 +38,7 @@ absTime = [0 cumsum(dTime,1).'];
 velocities = [zeros(1,6) ;
              vMax*ones(6,6)   % Constant velocity on the linear part
              zeros(nPts-7,6)]; velTag = 'v = vMax for all intermediate points';
-% velocities = zeros(nPts, 6); velTag = 'v = 0 for all points'; % start and end point velocity is zero.
+ velocities = zeros(nPts, 6); velTag = 'v = 0 for all points'; % start and end point velocity is zero.
 
 % Joint acceleration is set to zero at all points, but 
 % could be passed as an argument to smoothstep(). We would have to
@@ -112,10 +112,17 @@ if(plt)
     %     Interpolated q
     absTimeVec = linspace(absTime(1),absTime(end),size(qOut,1));
     plot(absTimeVec,qOut,'LineWidth',1.5);
-    legend('q1','q2','q3','q4','q5','q6','q1','q2','q3','q4','q5','q6','Location','best');
+    legend('q1','q2','q3','q4','q5','q6','q1','q2','q3','q4','q5','q6','Location','northeast');
     xlabel('time [s]');
     ylabel('angle');
     title(['Target joint angles over time and their interpolation. ' velTag]);
+    
+    % Create annotation about configuration
+    dim = [0.15 0.6 0.1 0.3];
+    str = {['Configuration: ', cfg]};
+    annotation('textbox',dim,'String',str,'FitBoxToText','on');
+    
+    
     
     %%%% Target locations and trajectories
     figure(5); clf(5); hold on;
@@ -129,8 +136,20 @@ if(plt)
     shg
     axis equal
     camproj('perspective')
-    legend('Points entered into trajectory','FK points trajectory','Interpolated q','Location','Best');
+    legend('Points entered into trajectory','FK points trajectory','Interpolated q','Location','northeast');
     title(['Target location and trajectory. ' velTag]);
+    
+    axis(1.1.*[min(FKpointsEase(:,1))  max(FKpointsEase(:,1))...
+        min(FKpointsEase(:,2))  1.1*max(FKpointsEase(:,2))...
+        min(FKpointsEase(:,3))  1.1*max(FKpointsEase(:,3))   ]);
+    
+    
+    
+     % Create annotation about configuration
+    dim = [0.15 0.6 0.1 0.3];
+    str = {['Configuration: ', cfg]};
+    annotation('textbox',dim,'String',str,'FitBoxToText','on','background','white');
+    
     
 else
     % Close figures if plot is turned off and there are still
