@@ -11,6 +11,7 @@ This project simulates a KUKA R10 Agilus robot arm by means of analytical invers
 * In instance 2 the robot arm should start moving. The joint angles will also be printed in the terminal of instance 2.
 
 ## Files of interest
+There are various files which might be of interest for the user. These files are located in the `libraries` folder.
 * `visualizerInterface.m` details the UDP connection and updating of the joint angles.
 * `getDH.m` Returns the DH parameters in a struct.
 * `forwardKinematics.m` Runs the forward kinematics.
